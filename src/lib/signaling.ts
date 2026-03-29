@@ -17,7 +17,7 @@ export class SignalingChannel {
   constructor(
     sessionId: string,
     role: SignalingRole,
-    callbacks: SignalingCallbacks
+    callbacks: SignalingCallbacks,
   ) {
     this.clientId = `${role}-${sessionId}`;
     this.realtime = new Ably.Realtime({

@@ -21,21 +21,21 @@ export async function importKey(b64url: string): Promise<CryptoKey> {
     raw.buffer as ArrayBuffer,
     { name: "AES-GCM", length: 256 },
     false,
-    ["encrypt", "decrypt"]
+    ["encrypt", "decrypt"],
   );
 }
 
 // Prepends a random 12-byte IV to the ciphertext: [IV (12)] [ciphertext]
 export async function encryptChunk(
   key: CryptoKey,
-  chunk: Uint8Array<ArrayBuffer>
+  chunk: Uint8Array<ArrayBuffer>,
 ): Promise<Uint8Array<ArrayBuffer>> {
   const iv = new Uint8Array(new ArrayBuffer(12));
   crypto.getRandomValues(iv);
   const ciphertext = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     key,
-    chunk
+    chunk,
   );
   const result = new Uint8Array(new ArrayBuffer(12 + ciphertext.byteLength));
   result.set(iv, 0);
@@ -45,14 +45,14 @@ export async function encryptChunk(
 
 export async function decryptChunk(
   key: CryptoKey,
-  data: Uint8Array<ArrayBuffer>
+  data: Uint8Array<ArrayBuffer>,
 ): Promise<Uint8Array<ArrayBuffer>> {
   const iv = new Uint8Array(data.buffer, 0, 12);
   const ciphertext = new Uint8Array(data.buffer, 12);
   const plaintext = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv },
     key,
-    ciphertext
+    ciphertext,
   );
   return new Uint8Array(plaintext);
 }

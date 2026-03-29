@@ -25,7 +25,10 @@ const SENDER_STATUS: Record<string, string> = {
 export default function Home() {
   const { state, shareUrl, progress, meta, startTransfer, reset } = useSender();
   const [dragActive, setDragActive] = useState(false);
-  const onDragActiveChange = useCallback((active: boolean) => setDragActive(active), []);
+  const onDragActiveChange = useCallback(
+    (active: boolean) => setDragActive(active),
+    [],
+  );
 
   return (
     <main className="relative flex flex-1 flex-col items-center justify-center gap-10 px-4 py-16">
@@ -37,7 +40,8 @@ export default function Home() {
           width: "600px",
           height: "600px",
           borderRadius: "50%",
-          background: "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.07) 0%, transparent 70%)",
+          background:
+            "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.07) 0%, transparent 70%)",
           filter: "blur(60px)",
         }}
       />
@@ -45,7 +49,10 @@ export default function Home() {
       <motion.div
         initial="hidden"
         animate="show"
-        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.09 } } }}
+        variants={{
+          hidden: {},
+          show: { transition: { staggerChildren: 0.09 } },
+        }}
         className="flex flex-col items-center gap-2 text-center"
       >
         <motion.div
@@ -70,7 +77,8 @@ export default function Home() {
           }}
           className="text-sm font-medium text-muted-foreground/90"
         >
-          peer-to-peer <span className="text-primary">·</span> zero servers <span className="text-primary">·</span> always encrypted
+          peer-to-peer <span className="text-primary">·</span> zero servers{" "}
+          <span className="text-primary">·</span> always encrypted
         </motion.p>
       </motion.div>
 
@@ -78,18 +86,20 @@ export default function Home() {
       <div
         className={cn(
           "relative w-full max-w-sm rounded-2xl border bg-card p-6 transition-colors duration-200",
-          dragActive
-            ? "border-primary/40 bg-primary/2"
-            : "border-white/8"
+          dragActive ? "border-primary/40 bg-primary/2" : "border-white/8",
         )}
         style={{
-          boxShadow: "var(--card-shadow), inset 0 1px 0 0 rgba(255,255,255,0.06)",
+          boxShadow:
+            "var(--card-shadow), inset 0 1px 0 0 rgba(255,255,255,0.06)",
         }}
       >
         <AnimatePresence mode="wait">
           {state === "idle" && (
             <motion.div key="idle" {...panel}>
-              <FileDropzone onFile={startTransfer} onDragActiveChange={onDragActiveChange} />
+              <FileDropzone
+                onFile={startTransfer}
+                onDragActiveChange={onDragActiveChange}
+              />
             </motion.div>
           )}
 
@@ -101,17 +111,29 @@ export default function Home() {
 
           {state === "sending" && meta && (
             <motion.div key="sending" {...panel}>
-              <TransferProgress meta={meta} progress={progress} label="Encrypting & sending..." />
+              <TransferProgress
+                meta={meta}
+                progress={progress}
+                label="Encrypting & sending..."
+              />
             </motion.div>
           )}
 
           {state === "done" && (
-            <motion.div key="done" {...panel} className="flex flex-col items-center gap-5 py-6 text-center">
+            <motion.div
+              key="done"
+              {...panel}
+              className="flex flex-col items-center gap-5 py-6 text-center"
+            >
               <div className="relative flex h-16 w-16 items-center justify-center">
                 <motion.div
                   className="absolute inset-0 rounded-full bg-green-500/20"
                   animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.8, ease: "easeOut" }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 1.8,
+                    ease: "easeOut",
+                  }}
                 />
                 <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-green-500/15">
                   <motion.div
@@ -124,7 +146,9 @@ export default function Home() {
                 </div>
               </div>
               <div>
-                <p className="font-semibold text-foreground">Transfer complete</p>
+                <p className="font-semibold text-foreground">
+                  Transfer complete
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {meta?.name} was delivered securely
                 </p>
@@ -142,7 +166,11 @@ export default function Home() {
           )}
 
           {state === "error" && (
-            <motion.div key="error" {...panel} className="flex flex-col items-center gap-5 py-6 text-center">
+            <motion.div
+              key="error"
+              {...panel}
+              className="flex flex-col items-center gap-5 py-6 text-center"
+            >
               <motion.div
                 animate={{ x: [-6, 6, -4, 4, 0] }}
                 transition={{ duration: 0.4, delay: 0.1 }}
@@ -151,9 +179,12 @@ export default function Home() {
                 <AlertCircle className="h-8 w-8 text-destructive" />
               </motion.div>
               <div>
-                <p className="font-semibold text-foreground">Connection failed</p>
+                <p className="font-semibold text-foreground">
+                  Connection failed
+                </p>
                 <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-                  The receiver&apos;s connection dropped. Try sharing a new link.
+                  The receiver&apos;s connection dropped. Try sharing a new
+                  link.
                 </p>
               </div>
               <motion.button

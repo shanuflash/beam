@@ -22,7 +22,9 @@ export function useSender() {
   // Warn before closing during an active transfer
   useEffect(() => {
     if (state === "idle" || state === "done" || state === "error") return;
-    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [state]);
@@ -66,7 +68,9 @@ export function useSender() {
           const end = Math.min(start + CHUNK_SIZE, file.size);
 
           // file.slice avoids loading the whole file into memory
-          const chunk = new Uint8Array(await file.slice(start, end).arrayBuffer() as ArrayBuffer);
+          const chunk = new Uint8Array(
+            (await file.slice(start, end).arrayBuffer()) as ArrayBuffer,
+          );
           const encrypted = await encryptChunk(key, chunk);
 
           // Backpressure: wait for buffer to drain before continuing

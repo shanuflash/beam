@@ -13,7 +13,10 @@ interface FileDropzoneProps {
   onDragActiveChange?: (active: boolean) => void;
 }
 
-export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) {
+export function FileDropzone({
+  onFile,
+  onDragActiveChange,
+}: FileDropzoneProps) {
   const [dragging, setDragging] = useState(false);
   const [selected, setSelected] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,10 +26,13 @@ export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) 
 
   // Window-level drag detection so the card reacts as soon as
   // a file enters the browser window, not just the dropzone.
-  const setDragActive = useCallback((active: boolean) => {
-    setDragging(active);
-    onDragActiveChange?.(active);
-  }, [onDragActiveChange]);
+  const setDragActive = useCallback(
+    (active: boolean) => {
+      setDragging(active);
+      onDragActiveChange?.(active);
+    },
+    [onDragActiveChange],
+  );
 
   useEffect(() => {
     const onEnter = (e: globalThis.DragEvent) => {
@@ -37,7 +43,10 @@ export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) 
     const onLeave = (e: globalThis.DragEvent) => {
       e.preventDefault();
       dragCounter.current--;
-      if (dragCounter.current <= 0) { dragCounter.current = 0; setDragActive(false); }
+      if (dragCounter.current <= 0) {
+        dragCounter.current = 0;
+        setDragActive(false);
+      }
     };
     const onDrop = (e: globalThis.DragEvent) => {
       e.preventDefault();
@@ -72,7 +81,10 @@ export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) 
 
   return (
     <div
-      onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragging(true);
+      }}
       onDragLeave={() => setDragging(false)}
       onDrop={onDrop}
       className="flex flex-col gap-4"
@@ -98,7 +110,11 @@ export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) 
           >
             {/* Remove / change file */}
             <button
-              onClick={(e) => { e.stopPropagation(); setSelected(null); inputRef.current!.value = ""; }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelected(null);
+                inputRef.current!.value = "";
+              }}
               className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground/60 transition-colors hover:bg-white/8 hover:text-foreground"
               aria-label="Remove file"
             >
@@ -115,7 +131,8 @@ export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) 
               <div
                 className="absolute h-28 w-28 rounded-full"
                 style={{
-                  background: "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.12) 0%, transparent 70%)",
+                  background:
+                    "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.12) 0%, transparent 70%)",
                 }}
               />
               <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-primary/10 bg-primary/8">
@@ -125,8 +142,12 @@ export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) 
 
             {/* File info */}
             <div>
-              <p className="max-w-56 truncate font-semibold text-foreground">{selected.name}</p>
-              <p className="mt-1 text-sm font-light text-muted-foreground">{formatBytes(selected.size)}</p>
+              <p className="max-w-56 truncate font-semibold text-foreground">
+                {selected.name}
+              </p>
+              <p className="mt-1 text-sm font-light text-muted-foreground">
+                {formatBytes(selected.size)}
+              </p>
             </div>
           </motion.div>
         ) : (
@@ -138,7 +159,7 @@ export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) 
             onClick={() => inputRef.current?.click()}
             className={cn(
               "flex cursor-pointer flex-col items-center gap-5 rounded-xl py-6 text-center transition-colors duration-200",
-              dragging && "bg-primary/4"
+              dragging && "bg-primary/4",
             )}
             style={{
               border: dragging
@@ -151,7 +172,8 @@ export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) 
               <motion.div
                 className="absolute h-24 w-24 rounded-full blur-2xl"
                 style={{
-                  background: "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.35) 0%, oklch(0.45 0.085 224.283 / 0.1) 50%, transparent 70%)",
+                  background:
+                    "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.35) 0%, oklch(0.45 0.085 224.283 / 0.1) 50%, transparent 70%)",
                   mixBlendMode: "screen",
                 }}
                 animate={
@@ -174,13 +196,13 @@ export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) 
                 }
                 className={cn(
                   "relative flex h-14 w-14 items-center justify-center rounded-2xl transition-colors",
-                  dragging ? "bg-primary/20" : "bg-muted"
+                  dragging ? "bg-primary/20" : "bg-muted",
                 )}
               >
                 <Upload
                   className={cn(
                     "h-6 w-6 transition-colors",
-                    dragging ? "text-primary" : "text-muted-foreground"
+                    dragging ? "text-primary" : "text-muted-foreground",
                   )}
                 />
               </motion.div>
@@ -188,13 +210,15 @@ export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) 
 
             {/* Text */}
             <div className="flex flex-col gap-1">
-              <p
-                className="text-base font-semibold text-foreground"
-              >
+              <p className="text-base font-semibold text-foreground">
                 {dragging ? "Drop it here" : "Drop a file to send"}
               </p>
               <p className="text-sm font-light text-muted-foreground">
-                or <span className="font-normal text-foreground/70 underline underline-offset-2">click to browse</span> · up to 1 GB
+                or{" "}
+                <span className="font-normal text-foreground/70 underline underline-offset-2">
+                  click to browse
+                </span>{" "}
+                · up to 1 GB
               </p>
             </div>
           </motion.div>
@@ -220,7 +244,11 @@ export function FileDropzone({ onFile, onDragActiveChange }: FileDropzoneProps) 
             initial={{ opacity: 0, y: 8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
-            whileHover={{ scale: 1.02, y: -1, boxShadow: "0 4px 32px var(--primary-glow)" }}
+            whileHover={{
+              scale: 1.02,
+              y: -1,
+              boxShadow: "0 4px 32px var(--primary-glow)",
+            }}
             whileTap={{ scale: 0.97 }}
             transition={SPRING}
             onClick={() => onFile(selected)}

@@ -7,7 +7,8 @@ import { createPeerConnection } from "@/lib/webrtc";
 import type { TransferState, TransferMeta } from "@/lib/types";
 
 export function useReceiver(sessionId: string) {
-  const keyB64 = typeof window !== "undefined" ? window.location.hash.slice(1) : "";
+  const keyB64 =
+    typeof window !== "undefined" ? window.location.hash.slice(1) : "";
   const [state, setState] = useState<TransferState>(keyB64 ? "idle" : "error");
   const [progress, setProgress] = useState(0);
   const [meta, setMeta] = useState<TransferMeta | null>(null);
@@ -60,7 +61,7 @@ export function useReceiver(sessionId: string) {
             // Binary: decrypt and collect chunk
             const decrypted = await decryptChunk(
               key,
-              new Uint8Array(data as ArrayBuffer)
+              new Uint8Array(data as ArrayBuffer),
             );
             chunksRef.current.push(decrypted);
             receivedRef.current++;
@@ -78,7 +79,7 @@ export function useReceiver(sessionId: string) {
             const answer = await pc!.createAnswer();
             await pc!.setLocalDescription(answer);
             await signaling!.sendAnswer(answer);
-            setState((prev) => prev === "receiving" ? prev : "connected");
+            setState((prev) => (prev === "receiving" ? prev : "connected"));
           } catch {
             setState("error");
           }
@@ -116,7 +117,9 @@ export function useReceiver(sessionId: string) {
   // Warn before closing during an active transfer
   useEffect(() => {
     if (state === "idle" || state === "done" || state === "error") return;
-    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [state]);

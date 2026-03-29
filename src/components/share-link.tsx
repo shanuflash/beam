@@ -37,7 +37,11 @@ export function ShareLink({ url, status }: ShareLinkProps) {
 
       {/* Copy button */}
       <motion.button
-        whileHover={{ scale: 1.02, y: -1, boxShadow: copied ? undefined : "0 4px 32px var(--primary-glow)" }}
+        whileHover={{
+          scale: 1.02,
+          y: -1,
+          boxShadow: copied ? undefined : "0 4px 32px var(--primary-glow)",
+        }}
         whileTap={{ scale: 0.96 }}
         transition={SPRING}
         onClick={copy}
@@ -45,12 +49,16 @@ export function ShareLink({ url, status }: ShareLinkProps) {
           "flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-[filter] duration-200",
           copied
             ? "bg-green-500/20 text-green-400"
-            : "text-primary-foreground hover:brightness-110"
+            : "text-primary-foreground hover:brightness-110",
         )}
-        style={!copied ? {
-          boxShadow: "0 0 20px var(--primary-glow)",
-          background: "var(--btn-gradient)",
-        } : undefined}
+        style={
+          !copied
+            ? {
+                boxShadow: "0 0 20px var(--primary-glow)",
+                background: "var(--btn-gradient)",
+              }
+            : undefined
+        }
       >
         <AnimatePresence mode="wait">
           {copied ? (

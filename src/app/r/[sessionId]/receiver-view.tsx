@@ -37,7 +37,8 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
           width: "600px",
           height: "600px",
           borderRadius: "50%",
-          background: "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.07) 0%, transparent 70%)",
+          background:
+            "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.07) 0%, transparent 70%)",
           filter: "blur(60px)",
         }}
       />
@@ -46,7 +47,10 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
       <motion.div
         initial="hidden"
         animate="show"
-        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.09 } } }}
+        variants={{
+          hidden: {},
+          show: { transition: { staggerChildren: 0.09 } },
+        }}
         className="flex flex-col items-center gap-2 text-center"
       >
         <motion.div
@@ -66,7 +70,8 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
           }}
           className="text-sm font-medium text-muted-foreground/90"
         >
-          peer-to-peer <span className="text-primary">·</span> zero servers <span className="text-primary">·</span> always encrypted
+          peer-to-peer <span className="text-primary">·</span> zero servers{" "}
+          <span className="text-primary">·</span> always encrypted
         </motion.p>
       </motion.div>
 
@@ -74,7 +79,8 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
       <div
         className="relative w-full max-w-sm rounded-2xl border border-white/8 bg-card p-6"
         style={{
-          boxShadow: "var(--card-shadow), inset 0 1px 0 0 rgba(255,255,255,0.06)",
+          boxShadow:
+            "var(--card-shadow), inset 0 1px 0 0 rgba(255,255,255,0.06)",
         }}
       >
         <AnimatePresence mode="wait">
@@ -96,17 +102,29 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
 
           {state === "receiving" && meta && (
             <motion.div key="receiving" {...panel}>
-              <TransferProgress meta={meta} progress={progress} label="Receiving & decrypting..." />
+              <TransferProgress
+                meta={meta}
+                progress={progress}
+                label="Receiving & decrypting..."
+              />
             </motion.div>
           )}
 
           {state === "done" && (
-            <motion.div key="done" {...panel} className="flex flex-col items-center gap-5 py-6 text-center">
+            <motion.div
+              key="done"
+              {...panel}
+              className="flex flex-col items-center gap-5 py-6 text-center"
+            >
               <div className="relative flex h-16 w-16 items-center justify-center">
                 <motion.div
                   className="absolute inset-0 rounded-full bg-green-500/20"
                   animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.8, ease: "easeOut" }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 1.8,
+                    ease: "easeOut",
+                  }}
                 />
                 <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-green-500/15">
                   <motion.div
@@ -119,7 +137,9 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
                 </div>
               </div>
               <div>
-                <p className="font-semibold text-foreground">Download complete</p>
+                <p className="font-semibold text-foreground">
+                  Download complete
+                </p>
                 <p className="mt-1 text-sm font-light text-muted-foreground">
                   {meta?.name} was decrypted and saved
                 </p>
@@ -128,7 +148,11 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
           )}
 
           {state === "error" && (
-            <motion.div key="error" {...panel} className="flex flex-col items-center gap-5 py-6 text-center">
+            <motion.div
+              key="error"
+              {...panel}
+              className="flex flex-col items-center gap-5 py-6 text-center"
+            >
               <motion.div
                 animate={{ x: [-6, 6, -4, 4, 0] }}
                 transition={{ duration: 0.4, delay: 0.1 }}
@@ -137,9 +161,12 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
                 <AlertCircle className="h-8 w-8 text-destructive" />
               </motion.div>
               <div>
-                <p className="font-semibold text-foreground">Connection failed</p>
+                <p className="font-semibold text-foreground">
+                  Connection failed
+                </p>
                 <p className="mt-1 max-w-xs text-sm font-light text-muted-foreground">
-                  The link may be invalid or the sender&apos;s connection dropped. Ask for a new link.
+                  The link may be invalid or the sender&apos;s connection
+                  dropped. Ask for a new link.
                 </p>
               </div>
             </motion.div>
