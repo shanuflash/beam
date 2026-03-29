@@ -54,7 +54,7 @@ export function TransferProgress({
       {/* Progress bar */}
       <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <motion.div
-          className="relative h-full rounded-full bg-primary"
+          className="relative h-full overflow-hidden rounded-full bg-primary"
           style={{
             width: useTransform(springWidth, (v) => `${v}%`),
             boxShadow:
