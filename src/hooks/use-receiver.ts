@@ -7,9 +7,7 @@ import { createPeerConnection } from "@/lib/webrtc";
 import type { TransferState, TransferMeta } from "@/lib/types";
 
 export function useReceiver(sessionId: string) {
-  const keyB64 =
-    typeof window !== "undefined" ? window.location.hash.slice(1) : "";
-  const [state, setState] = useState<TransferState>(keyB64 ? "idle" : "error");
+  const [state, setState] = useState<TransferState>("idle");
   const [progress, setProgress] = useState(0);
   const [meta, setMeta] = useState<TransferMeta | null>(null);
 
@@ -19,7 +17,11 @@ export function useReceiver(sessionId: string) {
   const receivedRef = useRef(0);
 
   useEffect(() => {
-    if (!keyB64) return;
+    const keyB64 = window.location.hash.slice(1);
+    if (!keyB64) {
+      setState("error");
+      return;
+    }
 
     let pc: RTCPeerConnection | null = null;
     let signaling: SignalingChannel | null = null;
@@ -112,7 +114,7 @@ export function useReceiver(sessionId: string) {
       pc?.close();
       signaling?.destroy();
     };
-  }, [sessionId, keyB64]);
+  }, [sessionId]);
 
   // Warn before closing during an active transfer
   useEffect(() => {

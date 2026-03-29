@@ -34,14 +34,16 @@ export default function Home() {
     <main className="relative flex flex-1 flex-col items-center justify-center gap-10 px-4 py-16">
       {/* Ambient background mesh glow */}
       <div
-        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-700"
         aria-hidden
         style={{
           width: "600px",
           height: "600px",
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.07) 0%, transparent 70%)",
+            state === "done"
+              ? "radial-gradient(circle, rgba(74, 222, 128, 0.07) 0%, transparent 70%)"
+              : "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.07) 0%, transparent 70%)",
           filter: "blur(60px)",
         }}
       />
@@ -127,7 +129,8 @@ export default function Home() {
             >
               <div className="relative flex h-16 w-16 items-center justify-center">
                 <motion.div
-                  className="absolute inset-0 rounded-full bg-green-500/20"
+                  className="absolute inset-0 rounded-full"
+                  style={{ background: "rgba(74, 222, 128, 0.1)" }}
                   animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
                   transition={{
                     repeat: Infinity,
@@ -135,7 +138,7 @@ export default function Home() {
                     ease: "easeOut",
                   }}
                 />
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-green-500/15">
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-green-400/20 bg-green-400/10">
                   <motion.div
                     initial={{ scale: 0, rotate: -30 }}
                     animate={{ scale: 1, rotate: 0 }}
@@ -149,8 +152,11 @@ export default function Home() {
                 <p className="font-semibold text-foreground">
                   Transfer complete
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {meta?.name} was delivered securely
+                <p className="mt-1 text-sm font-light text-muted-foreground">
+                  <span className="font-medium text-foreground">
+                    {meta?.name}
+                  </span>{" "}
+                  was delivered securely
                 </p>
               </div>
               <motion.button

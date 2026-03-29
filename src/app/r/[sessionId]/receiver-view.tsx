@@ -31,14 +31,16 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
     <main className="relative flex flex-1 flex-col items-center justify-center gap-10 px-4 py-16">
       {/* Ambient background mesh glow */}
       <div
-        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-700"
         aria-hidden
         style={{
           width: "600px",
           height: "600px",
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.07) 0%, transparent 70%)",
+            state === "done"
+              ? "radial-gradient(circle, rgba(74, 222, 128, 0.07) 0%, transparent 70%)"
+              : "radial-gradient(circle, oklch(0.45 0.085 224.283 / 0.07) 0%, transparent 70%)",
           filter: "blur(60px)",
         }}
       />
@@ -118,7 +120,8 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
             >
               <div className="relative flex h-16 w-16 items-center justify-center">
                 <motion.div
-                  className="absolute inset-0 rounded-full bg-green-500/20"
+                  className="absolute inset-0 rounded-full"
+                  style={{ background: "rgba(74, 222, 128, 0.1)" }}
                   animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
                   transition={{
                     repeat: Infinity,
@@ -126,7 +129,7 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
                     ease: "easeOut",
                   }}
                 />
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-green-500/15">
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-green-400/20 bg-green-400/10">
                   <motion.div
                     initial={{ scale: 0, rotate: -30 }}
                     animate={{ scale: 1, rotate: 0 }}
@@ -141,9 +144,21 @@ export function ReceiverView({ sessionId }: ReceiverViewProps) {
                   Download complete
                 </p>
                 <p className="mt-1 text-sm font-light text-muted-foreground">
-                  {meta?.name} was decrypted and saved
+                  <span className="font-medium text-foreground">
+                    {meta?.name}
+                  </span>{" "}
+                  was decrypted and saved
                 </p>
               </div>
+              <motion.a
+                href="/"
+                whileHover={{ scale: 1.03, y: -1 }}
+                whileTap={{ scale: 0.97 }}
+                transition={SPRING}
+                className="rounded-xl bg-muted px-5 py-2.5 text-sm font-medium text-muted-foreground transition-[filter] duration-200 hover:bg-muted/80 hover:brightness-125"
+              >
+                Receive another file
+              </motion.a>
             </motion.div>
           )}
 
