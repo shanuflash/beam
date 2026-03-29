@@ -1,12 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Zap, CheckCircle, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useSender } from "@/hooks/use-sender";
-import { FileDropzone } from "@/components/file-dropzone";
-import { ShareLink } from "@/components/share-link";
+import { Zap, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { useReceiver } from "@/hooks/use-receiver";
 import { TransferProgress } from "@/components/transfer-progress";
 
 const SPRING = { type: "spring", stiffness: 400, damping: 28 } as const;
@@ -17,15 +13,19 @@ const panel = {
   exit: { opacity: 0, y: -10, transition: { duration: 0.15 } },
 };
 
-const SENDER_STATUS: Record<string, string> = {
-  waiting: "Waiting for receiver to open the link...",
-  connected: "Receiver connected — starting transfer...",
+const RECEIVER_STATUS: Record<string, string> = {
+  idle: "Initialising...",
+  waiting: "Waiting for sender...",
+  connected: "Sender connected — preparing...",
+  receiving: "File incoming...",
 };
 
-export default function Home() {
-  const { state, shareUrl, progress, meta, startTransfer, reset } = useSender();
-  const [dragActive, setDragActive] = useState(false);
-  const onDragActiveChange = useCallback((active: boolean) => setDragActive(active), []);
+interface ReceiverViewProps {
+  sessionId: string;
+}
+
+export function ReceiverView({ sessionId }: ReceiverViewProps) {
+  const { state, progress, meta } = useReceiver(sessionId);
 
   return (
     <main className="relative flex flex-1 flex-col items-center justify-center gap-10 px-4 py-16">
@@ -41,6 +41,7 @@ export default function Home() {
           filter: "blur(60px)",
         }}
       />
+
       {/* Header */}
       <motion.div
         initial="hidden"
@@ -55,12 +56,7 @@ export default function Home() {
           }}
           className="flex items-center gap-2.5"
         >
-          <motion.div
-            animate={{ rotate: [0, -15, 15, 0] }}
-            transition={{ delay: 0.6, duration: 0.5, ease: "easeInOut" }}
-          >
-            <Zap className="h-6 w-6 text-primary" />
-          </motion.div>
+          <Zap className="h-6 w-6 text-primary" />
           <h1 className="text-3xl font-semibold tracking-tight">beam</h1>
         </motion.div>
         <motion.p
@@ -76,32 +72,31 @@ export default function Home() {
 
       {/* Persistent card */}
       <div
-        className={cn(
-          "relative w-full max-w-sm rounded-2xl border bg-card p-6 transition-colors duration-200",
-          dragActive
-            ? "border-primary/40 bg-primary/2"
-            : "border-white/8"
-        )}
+        className="relative w-full max-w-sm rounded-2xl border border-white/8 bg-card p-6"
         style={{
           boxShadow: "var(--card-shadow), inset 0 1px 0 0 rgba(255,255,255,0.06)",
         }}
       >
         <AnimatePresence mode="wait">
-          {state === "idle" && (
-            <motion.div key="idle" {...panel}>
-              <FileDropzone onFile={startTransfer} onDragActiveChange={onDragActiveChange} />
+          {(state === "idle" ||
+            state === "waiting" ||
+            state === "connected" ||
+            (state === "receiving" && !meta)) && (
+            <motion.div
+              key="waiting"
+              {...panel}
+              className="flex flex-col items-center gap-4 py-6 text-center"
+            >
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <p className="text-sm font-light text-muted-foreground">
+                {RECEIVER_STATUS[state] ?? "Connecting..."}
+              </p>
             </motion.div>
           )}
 
-          {(state === "waiting" || state === "connected") && shareUrl && (
-            <motion.div key="share" {...panel}>
-              <ShareLink url={shareUrl} status={SENDER_STATUS[state] ?? ""} />
-            </motion.div>
-          )}
-
-          {state === "sending" && meta && (
-            <motion.div key="sending" {...panel}>
-              <TransferProgress meta={meta} progress={progress} label="Encrypting & sending..." />
+          {state === "receiving" && meta && (
+            <motion.div key="receiving" {...panel}>
+              <TransferProgress meta={meta} progress={progress} label="Receiving & decrypting..." />
             </motion.div>
           )}
 
@@ -124,20 +119,11 @@ export default function Home() {
                 </div>
               </div>
               <div>
-                <p className="font-semibold text-foreground">Transfer complete</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {meta?.name} was delivered securely
+                <p className="font-semibold text-foreground">Download complete</p>
+                <p className="mt-1 text-sm font-light text-muted-foreground">
+                  {meta?.name} was decrypted and saved
                 </p>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.03, y: -1 }}
-                whileTap={{ scale: 0.97 }}
-                transition={SPRING}
-                onClick={reset}
-                className="rounded-xl bg-muted px-5 py-2.5 text-sm font-medium text-muted-foreground transition-[filter] duration-200 hover:bg-muted/80 hover:brightness-125"
-              >
-                Send another file
-              </motion.button>
             </motion.div>
           )}
 
@@ -152,19 +138,10 @@ export default function Home() {
               </motion.div>
               <div>
                 <p className="font-semibold text-foreground">Connection failed</p>
-                <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-                  The receiver&apos;s connection dropped. Try sharing a new link.
+                <p className="mt-1 max-w-xs text-sm font-light text-muted-foreground">
+                  The link may be invalid or the sender&apos;s connection dropped. Ask for a new link.
                 </p>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.03, y: -1 }}
-                whileTap={{ scale: 0.97 }}
-                transition={SPRING}
-                onClick={reset}
-                className="rounded-xl bg-muted px-5 py-2.5 text-sm font-medium text-muted-foreground transition-[filter] duration-200 hover:bg-muted/80 hover:brightness-125"
-              >
-                Try again
-              </motion.button>
             </motion.div>
           )}
         </AnimatePresence>

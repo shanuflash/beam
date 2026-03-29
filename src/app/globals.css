@@ -81,6 +81,9 @@
   --sidebar-ring: oklch(0.705 0.015 286.067);
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
+  --primary-glow: oklch(0.52 0.105 223.128 / 0.25);
+  --card-shadow: 0 0 0 1px oklch(0 0 0 / 6%), 0 8px 40px oklch(0 0 0 / 0.18);
+  --btn-gradient: linear-gradient(to bottom, oklch(0.55 0.105 223 / 1), oklch(0.48 0.095 224 / 1));
 }
 
 .dark {
@@ -95,7 +98,7 @@
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
+  --muted-foreground: oklch(0.75 0.015 286.067);
   --accent: oklch(0.45 0.085 224.283);
   --accent-foreground: oklch(0.984 0.019 200.873);
   --destructive: oklch(0.704 0.191 22.216);
@@ -115,6 +118,9 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
+  --primary-glow: oklch(0.45 0.085 224.283 / 0.30);
+  --card-shadow: 0 0 0 1px oklch(1 0 0 / 4%), 0 12px 48px oklch(0 0 0 / 0.5), 0 4px 24px oklch(0.45 0.085 224.283 / 0.08);
+  --btn-gradient: linear-gradient(to bottom, oklch(0.48 0.095 224 / 1), oklch(0.40 0.080 224 / 1));
 }
 
 @layer base {
@@ -127,4 +133,9 @@
   html {
     @apply font-sans;
   }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }

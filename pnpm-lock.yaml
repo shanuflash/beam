@@ -38,6 +38,9 @@ importers:
       shadcn:
         specifier: ^4.1.1
         version: 4.1.1(@types/node@20.19.37)(typescript@5.9.3)
+      shanu-portal-widget:
+        specifier: 1.0.7
+        version: 1.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -3421,6 +3424,12 @@ packages:
   shadcn@4.1.1:
     resolution: {integrity: sha512-nBj+7LYC9kzV9v9QmRPpoOhfW4KctJVQejywdAt/K+K+z4RYlJOcO2a4AaF7elrRWkfCbgXeGK02liV0KB9HvQ==}
     hasBin: true
+
+  shanu-portal-widget@1.0.7:
+    resolution: {integrity: sha512-a/VV1mhSEzLTPSIk05n7JZOS2xQcc4+2eqboiepl27CX/B2CQQEFu0HBM+iHEksZdiib7kiqfVnGcGQ96uTshg==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
 
   sharp@0.34.5:
     resolution: {integrity: sha512-Ou9I5Ft9WNcCbXrU9cMgPBcCK8LiwLqcbywW3t4oDV37n1pzpuNLsYiAV8eODnjbtQlSDwZ2cUEeQz4E54Hltg==}
@@ -7496,6 +7505,11 @@ snapshots:
       - babel-plugin-macros
       - supports-color
       - typescript
+
+  shanu-portal-widget@1.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+    dependencies:
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
 
   sharp@0.34.5:
     dependencies:
