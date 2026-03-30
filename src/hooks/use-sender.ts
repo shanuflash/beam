@@ -55,9 +55,6 @@ export function useSender() {
     const dc = pc.createDataChannel("beam", { ordered: true });
     dc.bufferedAmountLowThreshold = LOW_WATERMARK;
 
-    // Receiver closed tab mid-transfer — fires immediately unlike connectionState
-    dc.onclose = () => setState((prev) => (prev === "done" ? "done" : "error"));
-
     dc.onopen = async () => {
       setState("sending");
       try {
@@ -71,13 +68,17 @@ export function useSender() {
           return new Uint8Array((await file.slice(start, end).arrayBuffer()) as ArrayBuffer);
         };
 
+        // Rejects if the channel closes while waiting — breaks out of the send loop
         const waitForDrain = () =>
-          new Promise<void>((resolve) => {
-            const handler = () => {
-              dc.removeEventListener("bufferedamountlow", handler);
-              resolve();
+          new Promise<void>((resolve, reject) => {
+            const onDrain = () => { cleanup(); resolve(); };
+            const onClose = () => { cleanup(); reject(new Error("closed")); };
+            const cleanup = () => {
+              dc.removeEventListener("bufferedamountlow", onDrain);
+              dc.removeEventListener("close", onClose);
             };
-            dc.addEventListener("bufferedamountlow", handler);
+            dc.addEventListener("bufferedamountlow", onDrain);
+            dc.addEventListener("close", onClose);
           });
 
         // Pipeline: encrypt chunk N+1 while chunk N is in-flight
