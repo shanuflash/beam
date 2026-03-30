@@ -6,9 +6,9 @@ import { SignalingChannel } from "@/lib/signaling";
 import { createPeerConnection } from "@/lib/webrtc";
 import type { TransferState, TransferMeta } from "@/lib/types";
 
-const CHUNK_SIZE = 64 * 1024; // 64 KB per DataChannel message
-const HIGH_WATERMARK = 4 * 1024 * 1024; // pause sending above 4 MB buffered
-const LOW_WATERMARK = 128 * 1024; // resume when buffer drains to 128 KB
+const CHUNK_SIZE = 256 * 1024; // 256 KB per DataChannel message
+const HIGH_WATERMARK = 8 * 1024 * 1024; // pause sending above 8 MB buffered
+const LOW_WATERMARK = 512 * 1024; // resume when buffer drains to 512 KB
 
 export function useSender() {
   const [state, setState] = useState<TransferState>("idle");
@@ -58,34 +58,47 @@ export function useSender() {
     dc.onopen = async () => {
       setState("sending");
       try {
-        // Send file metadata as first message
         dc.send(JSON.stringify({ type: "meta", ...fileMeta }));
 
         const { totalChunks } = fileMeta;
 
-        for (let i = 0; i < totalChunks; i++) {
+        const readChunk = async (i: number): Promise<Uint8Array<ArrayBuffer>> => {
           const start = i * CHUNK_SIZE;
           const end = Math.min(start + CHUNK_SIZE, file.size);
+          return new Uint8Array((await file.slice(start, end).arrayBuffer()) as ArrayBuffer);
+        };
 
-          // file.slice avoids loading the whole file into memory
-          const chunk = new Uint8Array(
-            (await file.slice(start, end).arrayBuffer()) as ArrayBuffer,
-          );
-          const encrypted = await encryptChunk(key, chunk);
+        const waitForDrain = () =>
+          new Promise<void>((resolve) => {
+            const handler = () => {
+              dc.removeEventListener("bufferedamountlow", handler);
+              resolve();
+            };
+            dc.addEventListener("bufferedamountlow", handler);
+          });
 
-          // Backpressure: wait for buffer to drain before continuing
-          if (dc.bufferedAmount > HIGH_WATERMARK) {
-            await new Promise<void>((resolve) => {
-              const handler = () => {
-                dc.removeEventListener("bufferedamountlow", handler);
-                resolve();
-              };
-              dc.addEventListener("bufferedamountlow", handler);
-            });
+        // Pipeline: encrypt chunk N+1 while chunk N is in-flight
+        let nextEncrypted = encryptChunk(key, await readChunk(0));
+        let lastPct = 0;
+
+        for (let i = 0; i < totalChunks; i++) {
+          const encrypted = await nextEncrypted;
+
+          // Kick off next read+encrypt before blocking on backpressure
+          if (i + 1 < totalChunks) {
+            nextEncrypted = readChunk(i + 1).then((c) => encryptChunk(key, c));
           }
 
+          if (dc.bufferedAmount > HIGH_WATERMARK) await waitForDrain();
+
           dc.send(encrypted.buffer);
-          setProgress(Math.round(((i + 1) / totalChunks) * 100));
+
+          // Only re-render when the displayed integer % actually changes
+          const pct = Math.round(((i + 1) / totalChunks) * 100);
+          if (pct !== lastPct) {
+            lastPct = pct;
+            setProgress(pct);
+          }
         }
 
         dc.send(JSON.stringify({ type: "done" }));
