@@ -34,43 +34,49 @@ export function useReceiver(sessionId: string) {
       pc.ondatachannel = ({ channel }) => {
         setState("receiving");
 
-        channel.onmessage = async ({ data }) => {
-          if (typeof data === "string") {
-            const msg = JSON.parse(data) as { type: string } & TransferMeta;
+        // Serialize decryption — large chunks arrive faster than async decrypt
+        // finishes, causing out-of-order pushes if we don't queue them.
+        let decryptQueue = Promise.resolve();
 
-            if (msg.type === "meta") {
-              const m: TransferMeta = {
-                name: msg.name,
-                size: msg.size,
-                mimeType: msg.mimeType,
-                totalChunks: msg.totalChunks,
-              };
-              metaRef.current = m;
-              setMeta(m);
-            } else if (msg.type === "done") {
-              const blob = new Blob(chunksRef.current, {
-                type: metaRef.current?.mimeType || "application/octet-stream",
-              });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = metaRef.current?.name ?? "beam-file";
-              a.click();
-              URL.revokeObjectURL(url);
-              setState("done");
+        channel.onmessage = ({ data }) => {
+          decryptQueue = decryptQueue.then(async () => {
+            if (typeof data === "string") {
+              const msg = JSON.parse(data) as { type: string } & TransferMeta;
+
+              if (msg.type === "meta") {
+                const m: TransferMeta = {
+                  name: msg.name,
+                  size: msg.size,
+                  mimeType: msg.mimeType,
+                  totalChunks: msg.totalChunks,
+                };
+                metaRef.current = m;
+                setMeta(m);
+              } else if (msg.type === "done") {
+                const blob = new Blob(chunksRef.current, {
+                  type: metaRef.current?.mimeType || "application/octet-stream",
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = metaRef.current?.name ?? "beam-file";
+                a.click();
+                URL.revokeObjectURL(url);
+                setState("done");
+              }
+            } else {
+              // Binary: decrypt and collect chunk
+              const decrypted = await decryptChunk(
+                key,
+                new Uint8Array(data as ArrayBuffer),
+              );
+              chunksRef.current.push(decrypted);
+              receivedRef.current++;
+
+              const total = metaRef.current?.totalChunks ?? 1;
+              setProgress(Math.round((receivedRef.current / total) * 100));
             }
-          } else {
-            // Binary: decrypt and collect chunk
-            const decrypted = await decryptChunk(
-              key,
-              new Uint8Array(data as ArrayBuffer),
-            );
-            chunksRef.current.push(decrypted);
-            receivedRef.current++;
-
-            const total = metaRef.current?.totalChunks ?? 1;
-            setProgress(Math.round((receivedRef.current / total) * 100));
-          }
+          });
         };
       };
 

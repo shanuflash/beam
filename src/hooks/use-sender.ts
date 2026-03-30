@@ -6,7 +6,7 @@ import { SignalingChannel } from "@/lib/signaling";
 import { createPeerConnection } from "@/lib/webrtc";
 import type { TransferState, TransferMeta } from "@/lib/types";
 
-const CHUNK_SIZE = 128 * 1024; // 128 KB per DataChannel message
+const CHUNK_SIZE = 256 * 1024 - 28; // encrypted output stays just under browser's 256KB DataChannel limit
 const HIGH_WATERMARK = 8 * 1024 * 1024; // pause sending above 8 MB buffered
 const LOW_WATERMARK = 512 * 1024; // resume when buffer drains to 512 KB
 
@@ -136,7 +136,7 @@ export function useSender() {
 
     pc.onconnectionstatechange = () => {
       const { connectionState } = pc;
-      if (connectionState === "failed" || connectionState === "disconnected") {
+      if (connectionState === "failed") {
         setState("error");
       }
     };
