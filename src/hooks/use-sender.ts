@@ -6,9 +6,9 @@ import { SignalingChannel } from "@/lib/signaling";
 import { createPeerConnection } from "@/lib/webrtc";
 import type { TransferState, TransferMeta } from "@/lib/types";
 
-const CHUNK_SIZE = 64 * 1024; // 64 KB per DataChannel message
-const HIGH_WATERMARK = 4 * 1024 * 1024; // pause sending above 4 MB buffered
-const LOW_WATERMARK = 128 * 1024; // resume when buffer drains to 128 KB
+const CHUNK_SIZE = 128 * 1024; // 128 KB per DataChannel message
+const HIGH_WATERMARK = 8 * 1024 * 1024; // pause sending above 8 MB buffered
+const LOW_WATERMARK = 512 * 1024; // resume when buffer drains to 512 KB
 
 export function useSender() {
   const [state, setState] = useState<TransferState>("idle");
@@ -63,15 +63,21 @@ export function useSender() {
 
         const { totalChunks } = fileMeta;
 
-        for (let i = 0; i < totalChunks; i++) {
+        const readChunk = async (i: number) => {
           const start = i * CHUNK_SIZE;
           const end = Math.min(start + CHUNK_SIZE, file.size);
+          return new Uint8Array((await file.slice(start, end).arrayBuffer()) as ArrayBuffer);
+        };
 
-          // file.slice avoids loading the whole file into memory
-          const chunk = new Uint8Array(
-            (await file.slice(start, end).arrayBuffer()) as ArrayBuffer,
-          );
-          const encrypted = await encryptChunk(key, chunk);
+        // Pipeline: encrypt chunk i+1 while chunk i is in-flight
+        let nextEncrypted = readChunk(0).then((c) => encryptChunk(key, c));
+
+        for (let i = 0; i < totalChunks; i++) {
+          const encrypted = await nextEncrypted;
+
+          if (i + 1 < totalChunks) {
+            nextEncrypted = readChunk(i + 1).then((c) => encryptChunk(key, c));
+          }
 
           // Backpressure: wait for buffer to drain before continuing
           if (dc.bufferedAmount > HIGH_WATERMARK) {
