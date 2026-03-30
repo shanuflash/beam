@@ -55,6 +55,9 @@ export function useSender() {
     const dc = pc.createDataChannel("beam", { ordered: true });
     dc.bufferedAmountLowThreshold = LOW_WATERMARK;
 
+    // Receiver closed tab mid-transfer — fires immediately unlike connectionState
+    dc.onclose = () => setState((prev) => (prev === "done" ? "done" : "error"));
+
     dc.onopen = async () => {
       setState("sending");
       try {
@@ -142,10 +145,7 @@ export function useSender() {
     };
 
     pc.onconnectionstatechange = () => {
-      const { connectionState } = pc;
-      if (connectionState === "failed" || connectionState === "disconnected") {
-        setState("error");
-      }
+      if (pc.connectionState === "failed") setState("error");
     };
   }, []);
 
