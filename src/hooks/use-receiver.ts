@@ -116,8 +116,9 @@ export function useReceiver(sessionId: string) {
         },
         onIce: async (candidate) => {
           console.log("[receiver] received ICE candidate", candidate);
+          if (!pc) return;
           try {
-            await pc!.addIceCandidate(candidate);
+            await pc.addIceCandidate(candidate);
           } catch (err) {
             console.warn("[receiver] addIceCandidate failed (stale?)", err);
           }
