@@ -36,11 +36,14 @@ export class SignalingChannel {
       this.channel.subscribe("answer", (msg) => callbacks.onAnswer!(msg.data));
     }
     if (callbacks.onIce) {
-      // Filter out own messages — Ably echoes published messages back to the publisher
       this.channel.subscribe("ice", (msg) => {
         if (msg.clientId !== this.clientId) callbacks.onIce!(msg.data);
       });
     }
+  }
+
+  async waitForAttach(): Promise<void> {
+    await this.channel.attach();
   }
 
   sendReady() {

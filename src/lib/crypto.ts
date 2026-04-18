@@ -25,7 +25,6 @@ export async function importKey(b64url: string): Promise<CryptoKey> {
   );
 }
 
-// Prepends a random 12-byte IV to the ciphertext: [IV (12)] [ciphertext]
 export async function encryptChunk(
   key: CryptoKey,
   chunk: Uint8Array<ArrayBuffer>,

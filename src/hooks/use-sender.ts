@@ -6,9 +6,9 @@ import { SignalingChannel } from "@/lib/signaling";
 import { createPeerConnection } from "@/lib/webrtc";
 import type { TransferState, TransferMeta } from "@/lib/types";
 
-const CHUNK_SIZE = 256 * 1024 - 28; // encrypted output stays just under browser's 256KB DataChannel limit
-const HIGH_WATERMARK = 8 * 1024 * 1024; // pause sending above 8 MB buffered
-const LOW_WATERMARK = 512 * 1024; // resume when buffer drains to 512 KB
+const CHUNK_SIZE = 256 * 1024 - 28;
+const HIGH_WATERMARK = 8 * 1024 * 1024;
+const LOW_WATERMARK = 512 * 1024;
 
 export function useSender() {
   const [state, setState] = useState<TransferState>("idle");
@@ -19,7 +19,6 @@ export function useSender() {
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const signalingRef = useRef<SignalingChannel | null>(null);
 
-  // Warn before closing during an active transfer
   useEffect(() => {
     if (state === "idle" || state === "done" || state === "error") return;
     const handler = (e: BeforeUnloadEvent) => {
@@ -32,12 +31,10 @@ export function useSender() {
   const startTransfer = useCallback(async (file: File) => {
     setState("waiting");
 
-    // Generate session ID and AES-256-GCM key
     const sessionId = crypto.randomUUID();
     const key = await generateKey();
     const keyB64 = await exportKey(key);
 
-    // Key goes in the fragment — never sent to server
     const url = `${window.location.origin}/r/${sessionId}#${keyB64}`;
     setShareUrl(url);
 
@@ -55,10 +52,24 @@ export function useSender() {
     const dc = pc.createDataChannel("beam", { ordered: true });
     dc.bufferedAmountLowThreshold = LOW_WATERMARK;
 
+    dc.onmessage = ({ data }) => {
+      if (typeof data === "string") {
+        const msg = JSON.parse(data) as { type: string };
+        if (msg.type === "received") {
+          console.log("[sender] received ack, transfer complete");
+          setState("done");
+          pc.close();
+          signalingRef.current?.destroy();
+          signalingRef.current = null;
+          pcRef.current = null;
+        }
+      }
+    };
+
     dc.onopen = async () => {
+      console.log("[sender] data channel open");
       setState("sending");
       try {
-        // Send file metadata as first message
         dc.send(JSON.stringify({ type: "meta", ...fileMeta }));
 
         const { totalChunks } = fileMeta;
@@ -69,7 +80,6 @@ export function useSender() {
           return new Uint8Array((await file.slice(start, end).arrayBuffer()) as ArrayBuffer);
         };
 
-        // Pipeline: encrypt chunk i+1 while chunk i is in-flight
         let nextEncrypted = readChunk(0).then((c) => encryptChunk(key, c));
 
         for (let i = 0; i < totalChunks; i++) {
@@ -79,7 +89,6 @@ export function useSender() {
             nextEncrypted = readChunk(i + 1).then((c) => encryptChunk(key, c));
           }
 
-          // Backpressure: wait for buffer to drain before continuing
           if (dc.bufferedAmount > HIGH_WATERMARK) {
             await new Promise<void>((resolve) => {
               const handler = () => {
@@ -95,48 +104,68 @@ export function useSender() {
         }
 
         dc.send(JSON.stringify({ type: "done" }));
-        setState("done");
-      } catch {
+        console.log("[sender] all chunks sent, waiting for ack");
+      } catch (err) {
+        console.error("[sender] send failed", err);
         setState("error");
       }
     };
 
-    // Signaling: wait for receiver "ready" before creating offer
     const signaling = new SignalingChannel(sessionId, "sender", {
       onReady: async () => {
-        setState("connected");
+        console.log("[sender] receiver ready, creating offer");
         try {
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
           await signaling.sendOffer(offer);
-        } catch {
+          console.log("[sender] offer sent");
+        } catch (err) {
+          console.error("[sender] offer failed", err);
           setState("error");
         }
       },
       onAnswer: async (sdp) => {
+        console.log("[sender] received answer");
         try {
           await pc.setRemoteDescription(sdp);
-        } catch {
+          console.log("[sender] remote description set");
+        } catch (err) {
+          console.error("[sender] setRemoteDescription failed", err);
           setState("error");
         }
       },
       onIce: async (candidate) => {
+        console.log("[sender] received ICE candidate", candidate);
         try {
           await pc.addIceCandidate(candidate);
-        } catch {
-          // stale candidate, safe to ignore
+        } catch (err) {
+          console.warn("[sender] addIceCandidate failed (stale?)", err);
         }
       },
     });
     signalingRef.current = signaling;
 
     pc.onicecandidate = ({ candidate }) => {
-      if (candidate) signaling.sendIce(candidate.toJSON());
+      if (candidate) {
+        console.log("[sender] sending ICE candidate", candidate.toJSON());
+        signaling.sendIce(candidate.toJSON());
+      } else {
+        console.log("[sender] ICE gathering complete");
+      }
+    };
+
+    pc.onicegatheringstatechange = () => {
+      console.log("[sender] ICE gathering state:", pc.iceGatheringState);
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      console.log("[sender] ICE connection state:", pc.iceConnectionState);
     };
 
     pc.onconnectionstatechange = () => {
-      const { connectionState } = pc;
-      if (connectionState === "failed") {
+      console.log("[sender] connection state:", pc.connectionState);
+      if (pc.connectionState === "failed") {
+        console.error("[sender] connection failed");
         setState("error");
       }
     };
