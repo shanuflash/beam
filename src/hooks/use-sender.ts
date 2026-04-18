@@ -46,7 +46,7 @@ export function useSender() {
     };
     setMeta(fileMeta);
 
-    const pc = createPeerConnection();
+    const pc = await createPeerConnection();
     pcRef.current = pc;
 
     const dc = pc.createDataChannel("beam", { ordered: true });

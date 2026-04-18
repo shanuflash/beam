@@ -41,7 +41,7 @@ export function useReceiver(sessionId: string) {
     const setup = async () => {
       const key = await importKey(keyB64);
 
-      pc = createPeerConnection();
+      pc = await createPeerConnection();
 
       pc.ondatachannel = ({ channel }) => {
         console.log("[receiver] data channel open");
