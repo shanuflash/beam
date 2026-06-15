@@ -39,8 +39,8 @@ importers:
         specifier: ^4.1.1
         version: 4.1.1(@types/node@20.19.37)(typescript@5.9.3)
       shanu-portal-widget:
-        specifier: ^1.0.7
-        version: 1.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^1.0.8
+        version: 1.0.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -3425,8 +3425,8 @@ packages:
     resolution: {integrity: sha512-nBj+7LYC9kzV9v9QmRPpoOhfW4KctJVQejywdAt/K+K+z4RYlJOcO2a4AaF7elrRWkfCbgXeGK02liV0KB9HvQ==}
     hasBin: true
 
-  shanu-portal-widget@1.0.7:
-    resolution: {integrity: sha512-a/VV1mhSEzLTPSIk05n7JZOS2xQcc4+2eqboiepl27CX/B2CQQEFu0HBM+iHEksZdiib7kiqfVnGcGQ96uTshg==}
+  shanu-portal-widget@1.0.8:
+    resolution: {integrity: sha512-T9lDe5DWj0N83cG6lKhgkf5hpMpg4NCU2/rixH+FDAp3OJGGvQHDkVzF5JsgT9YFlFIO6CuOIrox0HQ02nIBig==}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
@@ -7506,7 +7506,7 @@ snapshots:
       - supports-color
       - typescript
 
-  shanu-portal-widget@1.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+  shanu-portal-widget@1.0.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
